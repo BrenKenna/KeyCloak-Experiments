@@ -1,0 +1,139 @@
+##########################################
+##########################################
+# 
+# ServerA Deployment
+# 
+##########################################
+##########################################
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: simple-server-a
+spec:
+  selector:
+    matchLabels:
+      app: simple-server-a
+  template:
+    metadata:
+      labels:
+        app: simple-server-a
+    spec:
+      containers:
+      - name: simple-server-a
+        image: bkenna/simple-server-app
+        command:
+            - /usr/local/bin/node
+        args:
+            - index.js
+            - --server
+            - Server-A
+            - --port
+            - "80"
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 80
+        volumeMounts:
+          - name: secret-volume
+            mountPath: /etc/secret-volume
+      volumes:
+        - name: secret-volume
+          secret:
+            secretName: simple-server-secret
+
+---
+
+##########################################
+##########################################
+# 
+# ServerB Deployment
+# 
+##########################################
+##########################################
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: simple-server-b
+spec:
+  selector:
+    matchLabels:
+      app: simple-server-b
+  template:
+    metadata:
+      labels:
+        app: simple-server-b
+    spec:
+      containers:
+      - name: simple-server-b
+        image: bkenna/simple-server-app
+        command:
+            - /usr/local/bin/node
+        args:
+            - index.js
+            - --server
+            - Server-B
+            - --port
+            - "80"
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 80
+        env:
+        - name: SECRET_DATA
+          valueFrom:
+            secretKeyRef:
+              name: simple-server-secret
+              key: userID
+
+---
+
+##########################################
+##########################################
+# 
+# ServerC Deployment
+# 
+##########################################
+##########################################
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: simple-server-c
+spec:
+  selector:
+    matchLabels:
+      app: simple-server-c
+  template:
+    metadata:
+      labels:
+        app: simple-server-c
+    spec:
+      containers:
+      - name: simple-server-c
+        image: bkenna/simple-server-app
+        command:
+            - /usr/local/bin/node
+        args:
+            - index.js
+            - --server
+            - Server-C
+            - --port
+            - "80"
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 80
+        volumeMounts:
+          - name: secret-volume
+            mountPath: /etc/secret-volume
+      volumes:
+        - name: secret-volume
+          secret:
+            secretName: simple-server-secret

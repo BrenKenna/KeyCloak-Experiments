@@ -1,0 +1,120 @@
+{
+    "apiVersion": "v1",
+    "items": [
+        {
+            "apiVersion": "apps/v1",
+            "kind": "Deployment",
+            "metadata": {
+                "annotations": {
+                    "deployment.kubernetes.io/revision": "1",
+                    "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"apps/v1\",\"kind\":\"Deployment\",\"metadata\":{\"annotations\":{},\"labels\":{\"app.kubernetes.io/component\":\"yolo\",\"app.kubernetes.io/name\":\"simple-server-a\"},\"name\":\"simple-server-a\",\"namespace\":\"default\"},\"spec\":{\"replicas\":1,\"selector\":{\"matchLabels\":{\"app.kubernetes.io/component\":\"yolo\",\"app.kubernetes.io/name\":\"simple-server-a\"}},\"template\":{\"metadata\":{\"labels\":{\"app.kubernetes.io/component\":\"yolo\",\"app.kubernetes.io/name\":\"simple-server-a\"}},\"spec\":{\"containers\":[{\"args\":[\"index.js\",\"--server\",\"Server-A\",\"--port\",\"8000\"],\"command\":[\"/usr/local/bin/node\"],\"image\":\"bkenna/simple-server-app\",\"name\":\"simple-server-a\",\"ports\":[{\"containerPort\":8000}],\"resources\":{\"limits\":{\"cpu\":\"2\",\"memory\":\"200M\"}}}]}}}}\n"
+                },
+                "creationTimestamp": "2023-07-13T23:10:53Z",
+                "generation": 1,
+                "labels": {
+                    "app.kubernetes.io/component": "yolo",
+                    "app.kubernetes.io/name": "simple-server-a"
+                },
+                "name": "simple-server-a",
+                "namespace": "default",
+                "resourceVersion": "16443",
+                "uid": "0dd9537b-22ed-4886-9102-075d286ffc2c"
+            },
+            "spec": {
+                "progressDeadlineSeconds": 600,
+                "replicas": 1,
+                "revisionHistoryLimit": 10,
+                "selector": {
+                    "matchLabels": {
+                        "app.kubernetes.io/component": "yolo",
+                        "app.kubernetes.io/name": "simple-server-a"
+                    }
+                },
+                "strategy": {
+                    "rollingUpdate": {
+                        "maxSurge": "25%",
+                        "maxUnavailable": "25%"
+                    },
+                    "type": "RollingUpdate"
+                },
+                "template": {
+                    "metadata": {
+                        "creationTimestamp": null,
+                        "labels": {
+                            "app.kubernetes.io/component": "yolo",
+                            "app.kubernetes.io/name": "simple-server-a"
+                        }
+                    },
+                    "spec": {
+                        "containers": [
+                            {
+                                "args": [
+                                    "index.js",
+                                    "--server",
+                                    "Server-A",
+                                    "--port",
+                                    "8000"
+                                ],
+                                "command": [
+                                    "/usr/local/bin/node"
+                                ],
+                                "image": "bkenna/simple-server-app",
+                                "imagePullPolicy": "Always",
+                                "name": "simple-server-a",
+                                "ports": [
+                                    {
+                                        "containerPort": 8000,
+                                        "protocol": "TCP"
+                                    }
+                                ],
+                                "resources": {
+                                    "limits": {
+                                        "cpu": "2",
+                                        "memory": "200M"
+                                    }
+                                },
+                                "terminationMessagePath": "/dev/termination-log",
+                                "terminationMessagePolicy": "File"
+                            }
+                        ],
+                        "dnsPolicy": "ClusterFirst",
+                        "restartPolicy": "Always",
+                        "schedulerName": "default-scheduler",
+                        "securityContext": {},
+                        "terminationGracePeriodSeconds": 30
+                    }
+                }
+            },
+            "status": {
+                "availableReplicas": 1,
+                "conditions": [
+                    {
+                        "lastTransitionTime": "2023-07-13T23:10:56Z",
+                        "lastUpdateTime": "2023-07-13T23:10:56Z",
+                        "message": "Deployment has minimum availability.",
+                        "reason": "MinimumReplicasAvailable",
+                        "status": "True",
+                        "type": "Available"
+                    },
+                    {
+                        "lastTransitionTime": "2023-07-13T23:10:53Z",
+                        "lastUpdateTime": "2023-07-13T23:10:56Z",
+                        "message": "ReplicaSet \"simple-server-a-8667d8d9cb\" has successfully progressed.",
+                        "reason": "NewReplicaSetAvailable",
+                        "status": "True",
+                        "type": "Progressing"
+                    }
+                ],
+                "observedGeneration": 1,
+                "readyReplicas": 1,
+                "replicas": 1,
+                "updatedReplicas": 1
+            }
+        }
+    ],
+    "kind": "List",
+    "metadata": {
+        "resourceVersion": "",
+        "selfLink": ""
+    }
+}

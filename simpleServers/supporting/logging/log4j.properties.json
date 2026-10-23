@@ -1,0 +1,19 @@
+{
+    "appenders": {
+        "outLog": {
+            "type": "stdout",
+            "category": "outLog",
+            "layout": {
+                "type": "pattern",
+                "pattern": "%d{yyyy-MM-dd hh:mm:ss.SSS} %p: %m"
+            }
+        }
+    },
+    "categories": {
+        "default": {
+            "level": "info",
+            "appenders": [ "outLog" ]
+
+        }
+    }
+}

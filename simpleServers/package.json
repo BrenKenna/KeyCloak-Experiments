@@ -1,0 +1,19 @@
+{
+  "name": "simpleservers",
+  "version": "1.0.0",
+  "description": "Simple web servers, for tinkering with Kubnernetes",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "fs": "^0.0.1-security",
+    "http": "^0.0.1-security",
+    "log4js": "^6.9.1",
+    "path": "^0.12.7",
+    "respond": "^0.9.0"
+  }
+}

@@ -1,0 +1,69 @@
+
+networks:
+  backend:
+    driver: bridge
+
+
+services:
+  serverA:
+    
+    image: bkenna/simple-server-app
+    
+    container_name: serverA
+    
+    ports:
+      - "8081:80"
+    
+    command:
+      - node
+      - index.js
+      - --server
+      - "server-A"
+      - --host
+      - "0.0.0.0"
+      - --port
+      - "80"
+
+    networks:
+      - backend
+
+
+  serverB:
+    
+    image: bkenna/simple-server-app
+    container_name: serverB
+    
+    ports:
+      - "8082:80"
+
+    command:
+      - node
+      - index.js
+      - --server
+      - "server-B"
+      - --host
+      - "0.0.0.0"
+      - --port
+      - "80"
+    
+    networks:
+      - backend
+
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    container_name: keycloak
+    
+    ports:
+      - "8093:8080"
+
+    networks:
+      - backend
+
+    command:
+      - start-dev
+      - --hostname=http://localhost:8080
+
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: password

@@ -1,0 +1,60 @@
+##########################################
+##########################################
+#
+# ServerA Service
+#
+##########################################
+##########################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: simple-server-a
+spec:
+  selector:
+    app: simple-server-a
+  ports:
+  - port: 80
+    targetPort: 80
+  type: LoadBalancer
+
+---
+
+##########################################
+##########################################
+#
+# ServerB Service
+#
+##########################################
+##########################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: simple-server-b
+spec:
+  selector:
+    app: simple-server-b
+  ports:
+  - port: 81
+    targetPort: 80
+  type: LoadBalancer
+
+---
+
+##########################################
+##########################################
+#
+# ServerC Service
+#
+##########################################
+##########################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: simple-server-c
+spec:
+  selector:
+    app: simple-server-c
+  ports:
+  - port: 82
+    targetPort: 80
+  type: LoadBalancer
