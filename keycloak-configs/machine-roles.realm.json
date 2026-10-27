@@ -1,0 +1,70 @@
+{
+    "real": "machine-roles",
+    "enabled": true,
+    "displayName": "Machine Roles",
+    "sslRequired": "none",
+    "clients": [
+        {
+            "clientId": "server-a",
+            "name": "Server-A API",
+            "enabled": true,
+            "protocol": "openid-connect",
+            "publicClient": false,
+            "clientAuthenticatorType": "client-secret",
+            "secret": "super-secret-server-a-key",
+            "serviceAccountEnabled": true,
+            "standardFlowEnabled": false,
+            "directAccessGrantsEnabled": false,
+            "implicitFlowEnabled": false,
+            "authorizationServicesEnabled": false,
+            "redirectUris": [],
+            "webOrigins": [],
+            "protocolMapper": [{
+                "name": "server-b-audience",
+                "protocol": "oidc-audience-mapper",
+                "consentRequired": false,
+                "config": {
+                    "included.client.audience": "server-b",
+                    "id.token.claim": "false",
+                    "access.token.claim": "true"
+                }
+            }]
+        },
+
+        {
+            "clientId": "server-b",
+            "name": "Server-B API",
+            "enabled": true,
+            "protocol": "openid-connect",
+            "publicClient": false,
+            "clientAuthenticatorType": "client-secret",
+            "serviceAccountsEnabled": true,
+            "secret": "super-secret-server-b-key",
+            "serviceAccountsEnabled": true,
+            "standardFlowEnabled": false,
+            "directAccessGrantsEnabled": false,
+            "implicitFlowEnabled": false,
+            "authorizationServicesEnabled": false,
+            "redirectUris": [],
+            "webOrigins": []
+        }
+    ],
+    
+    "roles": {
+        "client": {
+            "server-b": [
+                {
+                    "name": "encrypt",
+                    "description": "Allows calling the ServerB encryption endpoints"
+                }
+            ],
+
+            "server-a": [
+                {
+                    "name": "hash",
+                    "description": "Allows calling the ServerA hashing endpoints"
+                }
+            ]
+        }
+    }
+}
