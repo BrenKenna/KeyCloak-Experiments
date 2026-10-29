@@ -1,5 +1,5 @@
 const { TokenAccessModel } = require("./TokenAccessModel");
-
+const { TokenEvaluationModel } = require("./TokenEvalModel");
 
 /**
  * Create TokenAccessModel from options

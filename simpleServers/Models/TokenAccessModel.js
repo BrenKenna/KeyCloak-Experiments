@@ -38,8 +38,8 @@ class TokenAccessModel {
                 Keycloak URL, Realm, and ClientId are all required`
             );
         }
-        this.keycloakUrl = keycloakUrl;
         this.realm = realm;
+        this.keycloakUrl = `${keycloakUrl}/${this.realm}/protocol/openid-connect/token`;
         this.clientId = clientId;
         this.clientSecret = clientSecret;
         this.expiresAt = expiresAt;

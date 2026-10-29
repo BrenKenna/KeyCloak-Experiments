@@ -50,7 +50,7 @@ class TokenHandler{
     async evaluateToken(token) {
 
         // Evaluate token model
-        if ( ! this.tokenEvalModel === undefined ) {
+        if ( this.tokenEvalModel === undefined ) {
             return new TokenValidationResult(
                 false,
                 false,
@@ -73,7 +73,7 @@ class TokenHandler{
         // Fetch roles from token
         const roles = payload.resource_access?.[
             this.tokenEvalModel.getClientId()
-        ].roles || [];
+        ]?.roles || [];
 
         // Provide result
         return new TokenValidationResult(
@@ -147,7 +147,7 @@ class TokenHandler{
         }
 
         model.cachedToken = dataJson.access_token;
-        model.expiresAt = Date.now() + (dataJson * 1000);
+        model.expiresAt = Date.now() + (dataJson.expires_in * 1000);
 
         return model.getCachedToken();
     }

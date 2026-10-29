@@ -29,21 +29,34 @@ parser.addArg("Server", "Which server to run", "-S,--server");
 parser.addArg("Port", "Which port to listen on", "-P,--port");
 parser.addArg("Host", "Which IP to listen on", "-H,--host")
 parser.updateGlobalVariables();
-const
-    server = parser.getGlobalArgumentValue("Server"),
-    port = parser.getGlobalArgumentValue("Port")
-;
 
-let host;
+
+// Parse server and port
+const parsedServer = parser.getGlobalArgumentValue("Server");
+if ( parsedServer == null ) {
+    appLogger.warn("Warning, no server mode detected exposing hashing and encrypting endpoints");
+}
+const server = parsedServer ?? "serverC";
+
+const parsedPort = parser.getGlobalArgumentValue("Port");
+if ( parsedPort == null ) {
+    appLogger.warn(`Warning, server port not defined defaulting to 8080`);
+}
+const port = parsedPort ?? 8080;
+
+
+// Parse host
+const parsedHost = parser.getGlobalArgumentValue("Host");
 if (parser.getGlobalArgumentValue("Host") == null) {
-    host = "0.0.0.0";
-    appLogger.info("Undefined host, using '0.0.0.0'");
+    appLogger.info("Warning, host parameter not provided defaulting to '0.0.0.0'");
 }
 else {
-    host = parser.getGlobalArgumentValue("Host");
-    appLogger.info(`Host has been defined to '${host}'`);
+    appLogger.info(`Host has been defined to '${parsedHost}'`);
 }
+const host = parsedHost ?? "0.0.0.0";
 
+
+// Log configuration
 appLogger.info(`
 Displaying Requested Server = '${server}'
 Displaying Requested Port = '${port}'
@@ -83,32 +96,25 @@ app.get("/", (req, resp) => {
 });
 
 
-// Expose hashing if ServerA
+// Expose hasing with serverA
 if ( server.toLowerCase() === "servera" || server.toLowerCase() === "server-a" ) {
     appLogger.info("ServerA detected, exposing Hashing Endpoints");
     app.use("/hashing", hashingRouter);
 }
 
 // Otherwise expose encryption if ServerB
-else if ( server.toLowerCase() === "serverb" || server.toLowerCase() === "server-b" ) {
+if ( server.toLowerCase() === "serverb" || server.toLowerCase() === "server-b" ) {
     appLogger.info("ServerB detected, exposing Encrypting Endpoints");
     app.use("/encrypting", cipherRouter);
 }
 
-// Otherwise expose both, and log warning
+// Otherwise both
 else {
     appLogger.warn("Unable to detect which server to run, exposing hashing & encrypted endpoints");
     app.use("/hashing", hashingRouter);
     app.use("/encrypting", cipherRouter);
 }
 
-
-
-/**
- * 
- * Start server
- * 
- */
 
 // Start server
 appLogger.info("Starting server");

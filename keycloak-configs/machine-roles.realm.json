@@ -1,5 +1,5 @@
 {
-    "real": "machine-roles",
+    "realm": "machine-roles",
     "enabled": true,
     "displayName": "Machine Roles",
     "sslRequired": "none",
@@ -12,16 +12,17 @@
             "publicClient": false,
             "clientAuthenticatorType": "client-secret",
             "secret": "super-secret-server-a-key",
-            "serviceAccountEnabled": true,
+            "serviceAccountsEnabled": true,
             "standardFlowEnabled": false,
             "directAccessGrantsEnabled": false,
             "implicitFlowEnabled": false,
             "authorizationServicesEnabled": false,
             "redirectUris": [],
             "webOrigins": [],
-            "protocolMapper": [{
+            "protocolMappers": [{
                 "name": "server-b-audience",
-                "protocol": "oidc-audience-mapper",
+                "protocol": "openid-connect",
+                "protocolMapper": "oidc-audience-mapper",
                 "consentRequired": false,
                 "config": {
                     "included.client.audience": "server-b",
@@ -40,7 +41,6 @@
             "clientAuthenticatorType": "client-secret",
             "serviceAccountsEnabled": true,
             "secret": "super-secret-server-b-key",
-            "serviceAccountsEnabled": true,
             "standardFlowEnabled": false,
             "directAccessGrantsEnabled": false,
             "implicitFlowEnabled": false,
@@ -49,20 +49,18 @@
             "webOrigins": []
         }
     ],
-    
     "roles": {
         "client": {
-            "server-b": [
-                {
-                    "name": "encrypt",
-                    "description": "Allows calling the ServerB encryption endpoints"
-                }
-            ],
-
             "server-a": [
                 {
                     "name": "hash",
-                    "description": "Allows calling the ServerA hashing endpoints"
+                    "description": "Allow calling the serverA hashing endpoint"
+                }
+            ],
+            "server-b": [
+                {
+                    "name": "encrypt",
+                    "description": "Allows calling the serverB encryption endpoints"
                 }
             ]
         }
