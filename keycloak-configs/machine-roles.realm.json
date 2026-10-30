@@ -29,9 +29,11 @@
                     "id.token.claim": "false",
                     "access.token.claim": "true"
                 }
-            }]
+            }],
+            "attributes": {
+                "standard.token.exchange.enabled": "true"
+            }
         },
-
         {
             "clientId": "server-b",
             "name": "Server-B API",
@@ -46,7 +48,10 @@
             "implicitFlowEnabled": false,
             "authorizationServicesEnabled": false,
             "redirectUris": [],
-            "webOrigins": []
+            "webOrigins": [],
+            "attributes": {
+                "standard.token.exchange.enabled": "true"
+            }
         }
     ],
     "roles": {
@@ -64,5 +69,27 @@
                 }
             ]
         }
-    }
+    },
+    "users": [
+        {
+            "username": "service-account-server-a",
+            "enabled": true,
+            "serviceAccountClientId": "server-a",
+            "clientRoles": {
+                "server-a": [
+                    "hash"
+                ]
+            }
+        },
+        {
+            "username": "service-account-server-b",
+            "enabled": true,
+            "serviceAccountClientId": "server-b",
+            "clientRoles": {
+                "server-b": [
+                    "encrypt"
+                ]
+            }
+        }
+    ]
 }

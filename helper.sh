@@ -232,9 +232,6 @@ Decoding JWT field:     o2VWFprGMxeqzo8d4uUTDQBbptMaGRhmz8TT977E4nnYasMC4wVkLFgu
 '''
 
 
-
-
-
 # Inspect public JSON Web Key Set (JWKS)
 curl -s \
     http://localhost:8093/realms/master/protocol/openid-connect/certs | \
@@ -302,7 +299,7 @@ curl -sS -i \
     -X POST "$KC_URL/admin/realms" \
     -H "Authorization: Bearer $KC_TOKEN" \
     -H "Content-Type: application/json" \
---data-binary @keycloak-configs/machine-roles.realm.json
+--data @keycloak-configs/machine-roles.realm.json
 
 curl -sS \
     "$KC_URL/admin/realms" \
@@ -428,5 +425,171 @@ Other fields here represent metadata around the token
 
 Decoding JWT Field:     m6swS_l2w_CeATHn9uZ1FCFz7rzw_cxsbDg2_-4AD_HCkU2bOi_P_OMZvhsYUfeDkviH0bJU4hvuelqa9WjxxPa__6wE8sUPqvk7PjHdvM72ygQJcDQA9bkgkm26AIeu_cPJnhiIMwXZyGyqk0oV8swhzXBcZutG5Gd6esSiPIfTLku1ROiBLjqKjSeU-R_9e9zwrj6hPChJRwPOUxaIXBAgLraBSqAp1j9xc23iUkMg43E12jQZ-dYbIwsdmLjIY8T7iC29xqsldcOvg6M3PltoWeNE--drwvwVAPwjnUaFuwF4tugthL3iB3IUxBWkqv3d3070AXmgh5qN2vT7eQ
 
+
+'''
+
+
+
+# Export realm config
+curl -s -X POST \
+  "$KC_URL/admin/realms/machine-roles/partial-export?exportClients=true&exportGroupsAndRoles=true" \
+  -H "Authorization: Bearer $KC_TOKEN" \
+  -H "Content-Type: application/json" \
+  -o realm-export.json
+
+
+
+
+
+
+################################################################
+################################################################
+##
+## 4). Fetch Server Token and Perform Exchange
+##
+################################################################
+################################################################
+
+
+# Fetch and examine an access token from clients
+SERVER_A_TOKEN=$(
+  curl -s -X POST \
+      "http://localhost:8093/realms/machine-roles/protocol/openid-connect/token" \
+      -H "Content-Type: application/x-www-form-urlencoded" \
+      -d "grant_type=client_credentials" \
+      -d "client_id=server-a" \
+      -d "client_secret=super-secret-server-a-key" \
+  | jq -r '.access_token'
+)
+
+
+SERVER_B_TOKEN=$(
+  curl -s -X POST \
+      "http://localhost:8093/realms/machine-roles/protocol/openid-connect/token" \
+      -H "Content-Type: application/x-www-form-urlencoded" \
+      -d "grant_type=client_credentials" \
+      -d "client_id=server-b" \
+      -d "client_secret=super-secret-server-b-key" \
+  | jq -r '.access_token'
+)
+
+
+# Exchange for serverB token
+SERVER_B_TOKEN=$(
+  curl -s -X POST \
+    "${KC_URL}/realms/machine-roles/protocol/openid-connect/token" \
+    -H "Content-Type: application/x-www-form-urlencoded" \
+    -d "grant_type=urn:ietf:params:oauth:grant-type:token-exchange" \
+    -d "client_id=server-a" \
+    -d "client_secret=super-secret-server-a-key" \
+    --data-urlencode "subject_token=$SERVER_A_TOKEN" \
+    -d "subject_token_type=urn:ietf:params:oauth:token-type:access_token" \
+    -d "requested_token_type=urn:ietf:params:oauth:token-type:access_token" \
+    -d "audience=elephant" \ |
+  jq -r '.access_token'
+)
+
+
+SERVER_A_TOKEN=$(
+  curl -s -X POST \
+    "${KC_URL}/realms/machine-roles/protocol/openid-connect/token" \
+    -H "Content-Type: application/x-www-form-urlencoded" \
+    -d "grant_type=urn:ietf:params:oauth:grant-type:token-exchange" \
+    -d "client_id=server-b" \
+    -d "client_secret=super-secret-server-b-key" \
+    --data-urlencode "subject_token=$SERVER_B_TOKEN" \
+    -d "subject_token_type=urn:ietf:params:oauth:token-type:access_token" \
+    -d "requested_token_type=urn:ietf:params:oauth:token-type:access_token" \
+    -d "audience=server-a" \ |
+  jq -r '.access_token'
+)
+
+
+
+for field in $( echo $SERVER_A_TOKEN | sed 's/\./ /g' )
+do
+    echo -e "\n\nDecoding JWT Field:\t$field\n"
+    echo $field | tr '_-' '/+' | base64 -d | jq
+done
+
+
+
+'''
+
+Conventionally the provided token is call on-behalf of. This instance on-behalf of is itself
+   -> So cURL/ServerA provides its own SERVER_A_TOKEN, but this could be an bonafide MFA-user token
+
+The calling entity still needs to authenticate itself to perform the exchange. 
+  -> This is why a clientId+clientSecret is provided.
+
+ServerA is the Keycloak-client target, this target must be allowed by Keycloak to exchange tokens &
+ exchange those tokens for ServerB tokens.
+  -> This is why the ServerA clientId+clientSecret to serverA.
+
+Performing the reverse where ServerB tries to exchange self for a ServerA token, fails
+ with an error
+
+HTTP/1.1 400 Bad Request
+Cache-Control: no-store
+Pragma: no-cache
+content-length: 92
+Content-Type: application/json
+Referrer-Policy: no-referrer
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+X-Content-Type-Options: nosniff
+X-Frame-Options: SAMEORIGIN
+X-Robots-Tag: none
+
+{
+  "error": "invalid_request",
+  "error_description": "Requested audience not available: server-a"
+}
+
+2026-10-30 12:14:50,671 WARN  [org.keycloak.events] (executor-thread-31) type="TOKEN_EXCHANGE_ERROR", realmId="e609713f-d1fa-4f51-80bd-261c8ae6c371", realmName="machine-roles", clientId="server-b", userId="a9d0dc0a-31b5-4eb0-b630-11161f16b87b", ipAddress="172.18.0.1", error="invalid_request", reason="Requested audience not available: server-a", auth_method="token_exchange", grant_type="urn:ietf:params:oauth:grant-type:token-exchange", subject_token_client_id="server-b", requested_token_type="urn:ietf:params:oauth:token-type:access_token", client_auth_method="client-secret", username="service-account-server-b"
+
+
+1). JWT Header Field
+
+Decoding JWT Field:     eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJYSElKUHc5OUExM0tNbENqVjBKRWEwZzhneGhNc0pJbzNQYXkwb2FpMC04In0
+
+{
+  "alg": "RS256",
+  "typ": "JWT",
+  "kid": "XHIJPw99A13KMlCjV0JEa0g8gxhMsJIo3Pay0oai0-8"
+}
+
+
+
+2). JWT Payload Claims Field
+
+Decoding JWT Field:     eyJleHAiOjE3OTMzNjE2NjEsImlhdCI6MTc5MzM2MTM2MSwianRpIjoidHJydGNjOmJlMTEyZjg4LWEwOWEtZWQ0NS05NDhkLTBlODFhZTdhZTYzNCIsImlzcyI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA5My9yZWFsbXMvbWFjaGluZS1yb2xlcyIsImF1ZCI6InNlcnZlci1iIiwic3ViIjoiMDY0ZTYzMDYtM2NhOS00NmU1LWFhZjQtNmM5M2FkOWVlYjhkIiwidHlwIjoiQmVhcmVyIiwiYXpwIjoic2VydmVyLWEiLCJhY3IiOiIxIiwicmVzb3VyY2VfYWNjZXNzIjp7InNlcnZlci1hIjp7InJvbGVzIjpbImhhc2giXX19LCJzY29wZSI6ImVtYWlsIHByb2ZpbGUiLCJlbWFpbF92ZXJpZmllZCI6ZmFsc2UsInByZWZlcnJlZF91c2VybmFtZSI6InNlcnZpY2UtYWNjb3VudC1zZXJ2ZXItYSJ9
+
+{
+  "exp": 1793361661,
+  "iat": 1793361361,
+  "jti": "trrtcc:be112f88-a09a-ed45-948d-0e81ae7ae634",
+  "iss": "http://localhost:8093/realms/machine-roles",
+  "aud": "server-b",
+  "sub": "064e6306-3ca9-46e5-aaf4-6c93ad9eeb8d",
+  "typ": "Bearer",
+  "azp": "server-a",
+  "acr": "1",
+  "resource_access": {
+    "server-a": {
+      "roles": [
+        "hash"
+      ]
+    }
+  },
+  "scope": "email profile",
+  "email_verified": false,
+  "preferred_username": "service-account-server-a"
+}
+
+
+
+3). JWT Signature Field
+
+Decoding JWT Field:     pUrXM6EedioqH_L8KV5NQAmrZFOC1EbDRs3SwjpcKuyJjTIuq64UJs4YgCjaWHXLUhpHNAYkOcv9vgs9bseu9f81rgCd30SX7nIp8K0CJFqdbHtFsArpP-D62sPZ2yLiakpUr5N1c52T6aEFiSEdcy2v0NoGeR0SSVMtEfH0SgJwLT3FVVB6akpAPUT-qDEVzPpvnvtCD44A3DI8DGRL0FG5MfICvG8-KW377U-vNALvjYt35_Bh7XvgJLIYympn5SBzeu_ZeoP5hS0W4CLXuFreQXnGSvqdDLAejiOpdwlXYWYLg-5RjuWqgYZZwyEXTTQI-JE2Caub19SyaBhikQ
 
 '''
